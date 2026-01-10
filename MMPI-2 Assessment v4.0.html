@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMPI-2 Assessment Tool v4.0</title>
+    <style>
+        :root {
+            --primary: #2180d4;
+            --primary-dark: #1a5fa8;
+            --bg-light: #f5f7fa;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #e1e8ed;
+            --success: #27ae60;
+            --error: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary);
+        }
+
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 212, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .questions-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .question-item {
+            display: grid;
+            grid-template-columns: 40px 1fr 100px;
+            gap: 15px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .question-item:hover {
+            background: var(--bg-light);
+        }
+
+        .question-num {
+            font-weight: 600;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .answer-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .answer-btn {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .answer-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .answer-btn.plus.selected {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .answer-btn.minus.selected {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            color: var(--text-light);
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .value {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .success-message {
+            background: rgba(39, 174, 96, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            border-radius: 4px;
+            color: var(--success);
+            margin-bottom: 20px;
+        }
+
+        .warning-message {
+            background: rgba(230, 126, 34, 0.1);
+            border-left: 4px solid #e67e22;
+            padding: 15px;
+            border-radius: 4px;
+            color: #d35400;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background: rgba(33, 128, 212, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .review-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .review-table th,
+        .review-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            text-align: center;
+        }
+
+        .review-table th {
+            background: var(--bg-light);
+            font-weight: 600;
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: var(--success);
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .auto-save-indicator.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 MMPI-2 Assessment Tool v4.0</h1>
+            <p>Minnesota Multiphasic Personality Inventory - Versi 2 (567 Pernyataan)</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('biodata')">Biodata</button>
+            <button class="tab-btn" onclick="switchTab('questions')">Pernyataan</button>
+            <button class="tab-btn" onclick="switchTab('review')">Review</button>
+            <button class="tab-btn" onclick="switchTab('scoring')">Penilaian</button>
+        </div>
+
+        <!-- Tab Biodata -->
+        <div id="biodata" class="tab-content active">
+            <h2>Informasi Responden</h2>
+            <div class="info-box">
+                Isi informasi responden sebelum memulai penilaian MMPI-2.
+            </div>
+
+            <form id="biodataForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nama">Nama Lengkap *</label>
+                        <input type="text" id="nama" placeholder="Masukkan nama lengkap" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ttl">Tanggal Lahir *</label>
+                        <input type="date" id="ttl" onchange="hitungUmur()" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="umur">Umur (Otomatis)</label>
+                        <input type="number" id="umur" placeholder="Akan dihitung otomatis" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="jk">Jenis Kelamin *</label>
+                        <select id="jk" required>
+                            <option value="">-- Pilih --</option>
+                            <option value="Pria">Pria</option>
+                            <option value="Wanita">Wanita</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pendidikan">Pendidikan Terakhir</label>
+                        <input type="text" id="pendidikan" placeholder="Contoh: S1, SMA">
+                    </div>
+                    <div class="form-group">
+                        <label for="pekerjaan">Pekerjaan</label>
+                        <input type="text" id="pekerjaan" placeholder="Masukkan pekerjaan">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="alamat">Alamat</label>
+                    <textarea id="alamat" rows="3" placeholder="Masukkan alamat lengkap"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" onclick="saveBiodata()">💾 Simpan & Lanjut</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab Pernyataan -->
+        <div id="questions" class="tab-content">
+            <h2>Pernyataan MMPI-2</h2>
+            <div class="info-box">
+                Berikan jawaban dengan jujur sesuai pendapat Anda. Tidak ada jawaban yang benar atau salah. Jawaban otomatis tersimpan setiap 30 detik.
+            </div>
+
+            <div class="summary">
+                <div class="summary-card">
+                    <h3>Total Pernyataan</h3>
+                    <div class="value">567</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Terjawab</h3>
+                    <div class="value" id="totalAnswered">0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Progres</h3>
+                    <div class="value" id="progressPercent">0%</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+
+            <div id="questionsContainer" class="questions-container"></div>
+
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="switchTab('biodata')">← Kembali</button>
+                <button class="btn btn-primary" onclick="switchTab('review')">Lanjut ke Review →</button>
+            </div>
+        </div>
+
+        <!-- Tab Review -->
+        <div id="review" class="tab-content">
+            <h2>Review Jawaban</h2>
+            <div class="info-box">
+                Periksa jawaban Anda sebelum submit. Tabel diurutkan berdasarkan nomor pernyataan.
+            </div>
+
+            <div id="reviewContainer" style="max-height: 600px; overflow-y: auto; padding-right: 10px;"></div>
+
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="switchTab('questions')">← Ubah Jawaban</button>
+                <button class="btn btn-primary" onclick="switchTab('scoring')">Lanjut ke Penilaian →</button>
+            </div>
+        </div>
+
+        <!-- Tab Penilaian -->
+        <div id="scoring" class="tab-content">
+            <h2>Hasil Penilaian MMPI-2</h2>
+            
+            <div class="button-group" style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="calculateScores()">🧮 Hitung Skor</button>
+                <button class="btn btn-secondary" onclick="exportToPDF()">📄 Print/PDF</button>
+            </div>
+
+            <div id="scoringResult"></div>
+
+            <div class="navigation" style="margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="resetForm()">🔄 Mulai Ulang</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="auto-save-indicator" id="autoSaveIndicator">✓ Tersimpan</div>
+
+    <script>
+        const allQuestions = [
+            "Aku suka majalah teknik", "Nafsu makan-ku baik", "Aku bangun dengan rasa nyaman hampir setiap pagi",
+            "Aku mengira aku dapat menyukai pekerjaan perpustakaan", "Aku mudah terbangun oleh suara berisik",
+            "Ayah-ku seorang yang baik", "Aku senang membaca berita kejahatan di surat kabar",
+            "Tangan dan kaki-ku biasanya terasa cukup hangat", "Kehidupan-ku sehari-hari terisi penuh dengan hal-hal yang menarik",
+            "Aku sanggup bekerja sebagaimana biasanya", "Aku sering merasa ada yang menyumbat dalam tenggorokan-ku",
+            "Kehidupan seks-ku cukup memuaskan", "Seseorang harus berusaha memahami mimpinya sebagai petunjuk",
+            "Aku senang cerita detektif atau cerita yang misterius", "Aku bekerja dalam ketegangan yang sangat besar",
+            "Sekali-sekali aku berpikir tentang hal-hal yang buruk", "Aku yakin bahwa hidup ini tidak adil",
+            "Aku terganggu oleh serangan rasa mual dan muntah-muntah", "Bila aku melamar pekerjaan baru, aku ingin tahu siapa yang penting",
+            "Aku jarang sekali terganggu sembelit", "Aku pernah ingin sekali lari dari rumah",
+            "Aku merasa tidak seorang-pun yang mengerti akan diri-ku", "Pada waktu-waktu tertentu aku tertawa dan menangis tanpa kendali",
+            "Ada kalanya aku di-masuki roh jahat", "Aku ingin menjadi penyanyi", "Aku rasa lebih baik aku tutup mulut bila dalam kesulitan",
+            "Prinsip-ku adalah berusaha membalas orang yang berbuat salah", "Aku terganggu oleh penyakit lambung beberapa kali dalam seminggu",
+            "Ada kalanya aku merasa ingin mengumpat", "Aku bermimpi buruk beberapa malam sekali", "Aku merasa sukar untuk memusatkan perhatian pada pekerjaan",
+            "Aku pernah mengalami hal-hal yang aneh dan tidak masuk akal", "Aku jarang merisaukan kesehatan-ku", "Aku belum pernah mengalami kesulitan karena kelakuan seks-ku",
+            "Dalam suatu masa muda, aku pernah melakukan pencurian kecil", "Aku batuk-batuk hampir setiap waktu", "Kadang-kadang aku ingin membanting barang-barang",
+            "Aku pernah tidak dapat mengurus sesuatu berhari-hari atau berbulan-bulan", "Tidur-ku sering terganggu dan terbangun-bangun",
+            "Aku sering merasa seluruh kepala-ku sakit", "Aku tidak selalu mengatakan yang benar", "Bila orang-orang tidak menghalangi, aku akan lebih sukses",
+            "Sekarang aku lebih mampu mengambil keputusan daripada dahulu", "Sekali atau lebih dalam seminggu, aku tiba-tiba merasa panas",
+            "Kesehatan-ku kurang lebih sama baiknya dengan kawan-kawan-ku", "Bila aku berpapasan teman sekolah, aku lebih suka menghindari mereka",
+            "Aku hampir tidak pernah terganggu nyeri pada jantung atau dada", "Pada umumnya aku lebih suka duduk melamun daripada bekerja",
+            "Aku seorang yang mudah bergaul", "Aku sering harus menerima perintah dari seseorang tidak lebih pandai",
+            "Aku tidak membaca setiap tajuk pada surat kabar harian", "Aku belum menjalani hidup yang benar", "Pada beberapa bagian tubuh-ku sering panas, kesemutan",
+            "Keluarga-ku tidak senang pada pekerjaan yang telah atau akan aku pilih", "Aku kadang-kadang tetap bertahan pada sesuatu hal",
+            "Aku mengharapkan dapat berbahagia seperti orang lain", "Aku hampir tidak pernah merasa sakit di tengkuk-ku",
+            "Banyak orang suka melebih-lebihkan kemalangannya untuk simpati", "Aku terganggu oleh rasa tidak enak pada ulu hati setiap beberapa hari",
+            "Pada waktu bersama orang-orang, aku merasa terganggu suara aneh", "Aku termasuk orang yang penting",
+            "Pria sering ingin menjadi wanita / Wanita tidak menyesal sebagai wanita", "Perasaan-ku tidak mudah tersinggung",
+            "Aku senang membaca kisah cinta", "Aku sering sekali merasa murung", "Rasanya akan lebih baik apabila semua Undang-Undang ditiadakan",
+            "Aku menyukai sajak dan puisi", "Aku kadang-kadang mempermainkan binatang", "Aku senang dengan pekerjaan sebagai polisi atau penjaga hutan",
+            "Aku mudah dikalahkan dalam perdebatan", "Akhir-akhir ini aku sukar melawan perasaan hilangnya harapan",
+            "Roh-ku kadang-kadang meninggalkan tubuh-ku", "Aku memang kurang kepercayaan pada diri-ku sendiri",
+            "Aku ingin menjadi pedagang bunga", "Pada umumnya aku merasa bahwa hidup ini ada manfaatnya",
+            "Untuk meyakinkan orang dibutuhkan banyak pembicaraan", "Apa yang harus aku kerjakan hari ini kadang-kadang aku tunda besok",
+            "Aku disukai oleh kebanyakan orang yang mengenal aku", "Aku tahan dijadikan bahan lelucon", "Aku ingin menjadi juru rawat",
+            "Menurut pendapat-ku, sebagian besar orang akan berbohong", "Aku banyak melakukan hal-hal yang kemudian aku sesalkan",
+            "Aku sedikit sekali bertengkar dengan anggota keluarga-ku", "Aku pernah dikeluarkan dari sekolah karena bandel atau nakal",
+            "Ada kalanya aku terdorong dengan kuat untuk melakukan sesuatu berbahaya", "Aku senang pergi ke pesta dan hal-hal lain yang menggembirakan",
+            "Aku pernah dihadapkan pada persoalan yang begitu banyak kemungkinannya", "Aku berpendapat bahwa perempuan seharusnya mendapat kebebasan seks",
+            "Peperangan-ku yang paling berat adalah melawan diri sendiri", "Aku sayang pada Ayah-ku",
+            "Aku tidak terganggu oleh kejutan-kejutan otot", "Rasanya aku tidak peduli dengan apa yang terjadi pada diri-ku",
+            "Bila aku sedang tidak enak badan, kadang-kadang aku mudah marah", "Aku sering merasa seakan-akan telah melakukan sesuatu yang salah",
+            "Pada umumnya aku cukup bahagia", "Aku melihat ada makhluk atau benda yang tidak tampak orang lain",
+            "Kepala-ku sering sekali terasa berat atau hidung-ku mampet", "Ada orang yang sok tuan besar, walaupun aku tahu ia benar",
+            "Seseorang telah memojokkan aku, sehingga aku tidak berkutik", "Aku tidak pernah melakukan sesuatu yang berbahaya untuk kesenangan",
+            "Aku sering merasa seakan-akan ada ikatan yang menjepit kepala-ku", "Aku kadang-kadang marah",
+            "Aku lebih menyukai suatu pertandingan yang disertai taruhan", "Kebanyakan orang berbuat jujur terutama karena takut ditangkap",
+            "Di sekolah dahulu aku kadang-kadang dipanggil kepala sekolah", "Bicara-ku lancar dan jelas seperti biasanya",
+            "Tata cara makan-ku di rumah tidak sebaik jika bersama orang lain", "Setiap orang yang mampu dan bekerja keras punya kesempatan sukses",
+            "Rasanya aku sama mampu dan pandainya seperti orang lain", "Banyak orang akan menggunakan cara-cara kurang jujur",
+            "Aku sering menderita sakit perut", "Aku menyukai seni drama", "Aku tahu siapa yang menjadi biang keladi kesulitan-kesulitan-ku",
+            "Kadang-kadang aku begitu tertarik pada barang-barang pribadi orang lain", "Aku tidak takut atau terganggu ketika melihat darah",
+            "Kadang-kadang aku tidak mengerti mengapa aku marah dan mengomel", "Aku belum pernah batuk darah atau muntah darah",
+            "Aku tidak khawatir terserang penyakit", "Aku suka mengumpulkan dan memelihara tanaman hias atau bunga",
+            "Aku sering merasa perlu mempertahankan apa yang aku anggap benar", "Aku belum pernah tertarik dan melakukan perbuatan seks yang tidak wajar",
+            "Ada kalanya pikiran-ku lebih cepat dari ucapan-ku", "Bila aku yakin tidak seorang-pun yang melihatnya, mungkin menyelundup nonton",
+            "Apabila ada orang berbuat baik, aku biasanya bertanya-tanya alasan tersembunyi", "Aku berpendapat kehidupan keluarga-ku sama menyenangkannya",
+            "Aku percaya pada penegakan hukum", "Kritik dan teguran sangat menyakitkan hati-ku", "Aku senang memasak",
+            "Kelakuan-ku banyak dipengaruhi oleh perilaku orang-orang lingkungan", "Kadang-kadang aku benar-benar merasa tidak berguna",
+            "Semasa muda, aku menjadi anggota kelompok yang kompak", "Aku percaya adanya kehidupan setelah kematian",
+            "Aku ingin menjadi tentara", "Ada kalanya aku merasa ingin berkelahi dengan seseorang",
+            "Aku sering kehilangan kesempatan baik karena tidak membuat keputusan", "Bila aku sibuk dengan penting, aku menjadi tidak sabar",
+            "Aku biasanya menulis pengalaman-ku dalam buku harian", "Aku yakin bahwa ada komplotan yang memusuhi aku",
+            "Aku lebih ingin menang daripada kalah dalam suatu permainan", "Biasanya aku pergi tidur tanpa pikiran yang mengganggu",
+            "Beberapa tahun terakhir, pada umumnya aku sehat-sehat aja", "Aku tidak pernah sakit ayan atau kejang-kejang",
+            "Berat badan-ku tetap saja, tidak naik maupun turun", "Aku yakin aku sedang diikuti",
+            "Aku merasa bahwa aku sering dihukum tanpa sebab", "Aku mudah menangis", "Bila membaca, daya tangkap-ku tidak lagi sebaik dulu",
+            "Aku tidak pernah merasa sesenang seperti sekarang ini", "Ubun-ubun kepala-ku kadang-kadang terasa nyeri bila diraba",
+            "Kadang-kadang aku merasa harus melukai diri-ku atau orang lain", "Aku mendongkol bila orang dengan cerdik menipu-ku",
+            "Aku tidak cepat lelah", "Aku ingin mengenal orang-orang penting",
+            "Bila melihat ke bawah dari tempat tinggi, aku menjadi takut", "Aku tidak akan gelisah bila keluarga terlibat perkara hukum",
+            "Aku berjiwa pengembara dan tidak bahagia bila tidak berkelana", "Aku tidak terganggu oleh apa yang orang pikirkan diri-ku",
+            "Aku merasa canggung berbuat sesuatu menonjol dalam pesta", "Aku belum pernah mengalami serangan pingsan",
+            "Pada waktu lalu, aku senang bisa bersekolah", "Aku sering berusaha keras menyembunyikan rasa malu",
+            "Seseorang telah mencoba meracuni aku", "Aku tidak terlampau takut pada ular", "Aku jarang atau tidak pernah diserang pusing",
+            "Daya ingat-ku baik-baik saja", "Aku merisaukan masalah seks", "Aku sulit memulai percakapan bertemu orang yang baru aku kenal",
+            "Ada kalanya aku melakukan sesuatu yang tidak diketahui akulah", "Bila aku menjadi bosan, aku suka membuat hal-hal menggairahkan",
+            "Aku takut hilang kesadaran diri-ku", "Aku tidak setuju memberi uang kepada pengemis",
+            "Aku sering menemukan tangan-ku gemetar", "Aku mampu membaca lama tanpa melelahkan mata-ku",
+            "Aku suka mempelajari dan membaca tentang apa sedang aku kerjakan", "Aku sering merasa seluruh badan-ku lemah",
+            "Aku jarang sekali sakit kepala", "Tangan-ku belum pernah mengalami hilang keterampilan",
+            "Kadang-kadang, bila malu dan canggung, aku mandi keringat", "Aku mudah saja menjaga keseimbangan badan-ku",
+            "Ada sesuatu yang tidak beres dengan pikiran-ku", "Aku tidak menderita serangan selesma atau sesak napas",
+            "Aku pernah mengalami tidak mampu mengendalikan pergerakan badan", "Aku tidak selalu menyukai setiap orang yang aku kenal",
+            "Aku jarang sekali melamun", "Aku ingin tidak pemalu seperti ini", "Aku tidak takut mengurus uang",
+            "Andai kata aku seorang wartawan, aku akan senang memberitakan drama", "Aku menikmati bermacam-macam pertunjukan dan hiburan",
+            "Aku suka bercumbu rayu", "Keluarga-ku lebih memperlakukan aku sebagai kanak-kanak",
+            "Aku ingin juga menjadi wartawan", "Ibu-ku seorang yang baik", "Sewaktu berjalan aku sangat hati-hati agar tidak salah injak",
+            "Aku tidak pernah cemas dengan kelainan pada kulit-ku", "Dibandingkan keluarga lain, kasih sayang dalam keluarga sangat kurang",
+            "Ternyata aku sering merisaukan sesuatu", "Aku senang pekerjaan seorang pemborong bangunan",
+            "Aku sering mendengar suara-suara yang tidak aku ketahui asalnya", "Aku suka pada ilmu pengetahuan",
+            "Mudah bagi-ku untuk minta pertolongan dari kawan-kawan", "Aku gemar sekali berburu binatang",
+            "Orang tua-ku sering tidak setuju terhadap teman-teman pilihan-ku", "Ada kalanya aku mempergunjingkan orang lain",
+            "Pendengaran-ku ternyata sama baik-nya dengan orang lain", "Beberapa anggota keluarga-ku punya kebiasaan sangat mengganggu",
+            "Ada kalanya aku merasa mudah membuat keputusan", "Aku ingin juga menjadi anggota beberapa perkumpulan",
+            "Aku hampir tidak pernah memperhatikan jantung-ku berdebar", "Aku suka membicarakan perihal seks",
+            "Aku suka mengunjungi tempat yang belum pernah aku kunjungi", "Aku terpanggil untuk mengisi hidup-ku dengan tugas yang mulia",
+            "Kadang-kadang aku menghalangi orang yang mencoba berbuat sesuatu", "Aku mudah menjadi marah dan kemudian cepat reda kembali",
+            "Aku cukup bebas dan tidak terikat pada peraturan-peraturan keluarga", "Aku sering sekali murung dan bengong",
+            "Seseorang telah mencoba merampas barang-barang-ku", "Hampir semua sanak keluarga-ku bersimpati pada aku",
+            "Pada saat-saat tertentu aku merasa gelisah sekali", "Aku telah dikecewakan dalam cinta",
+            "Aku tidak pernah khawatir akan penampilan-ku", "Aku sering bermimpi tentang hal-hal yang lebih baik aku ketahui sendiri",
+            "Anak-anak seharusnya diberi pelajaran tentang fakta-fakta dalam seks", "Aku yakin aku tidak lebih gugup dari orang lain",
+            "Aku tidak atau sedikit mengalami rasa nyeri atau sakit-sakit", "Cara-ku melakukan sesuatu biasanya disalah-tafsirkan orang lain",
+            "Kadang-kadang tanpa alasan, aku merasa sangat gembira sekali", "Aku tidak menyalahkan orang-orang yang mencoba meraih sebanyak-banyaknya",
+            "Ada orang-orang yang mencoba mencuri ide dan buah pikiran-ku", "Aku pernah mengalami pikiran-ku mendadak kosong",
+            "Aku mampu bersikap tetap ramah terhadap orang-orang yang berbuat salah", "Aku suka berkumpul dengan orang-orang yang suka bercanda",
+            "Aku kadang-kadang memilih orang-orang yang tidak begitu aku kenal", "Aku merasa berat untuk memulai suatu pekerjaan",
+            "Aku percaya bahwa aku seorang yang terkutuk", "Dahulu ketika sekolah, aku lambat menangkap pelajaran",
+            "Andaikata aku pelukis, aku akan senang melukis bunga", "Aku tidak peduli akan diri-ku yang kurang tampan atau cantik",
+            "Aku mudah sekali berkeringat walaupun dalam udara dingin", "Aku sepenuhnya percaya pada diri sendiri",
+            "Ada kalanya tidak mungkin bagi-ku menahan diri dari keinginan mencuri", "Lebih aman untuk tidak mempercayai siapa-pun",
+            "Sekali seminggu atau lebih, aku menjadi sangat bersemangat", "Ketika dalam pertemuan kelompok, aku mengalami kesukaran bahan",
+            "Sesuatu yang menggairahkan hampir selalu menghilangkan kesedihan-ku", "Jika aku pergi, aku tidak merisaukan pintu atau jendela terkunci",
+            "Aku percaya dosa-ku tidak dapat diampuni", "Kulit-ku terasa kebal pada beberapa tempat",
+            "Aku tidak menyalahkan seorang yang akan mengambil keuntungan", "Penglihatan-ku sekarang sama baiknya dengan penglihatan-ku dahulu",
+            "Ada kalanya aku begitu kagum akan kepiawaian seorang bajingan", "Aku sering merasa orang-orang yang tidak aku kenal memperhatikan aku",
+            "Semua rasanya sama saja", "Setiap hari aku minum air dalam jumlah luar biasa banyaknya",
+            "Kebanyakan orang mencari kawan karena diharapkan berguna", "Aku jarang memperhatikan suara mendengung dalam telinga-ku",
+            "Sekali waktu aku merasa benci terhadap keluarga-ku", "Seandainya aku wartawan, aku ingin menulis berita olah raga",
+            "Pada siang hari aku dapat tidur tetapi malam tidak", "Aku yakin bahwa aku dipergunjingkan orang",
+            "Sekali-sekali aku tertawa mendengar lelucon porno", "Dibandingkan kawan-kawan-ku, aku sedikit sekali mempunyai rasa takut",
+            "Dalam pertemuan kelompok, aku tidak akan malu bila memulai diskusi", "Aku selalu merasa muak terhadap hukum, ketika penjahat dibebaskan",
+            "Aku minum minuman keras berlebihan", "Aku cenderung untuk tidak menyapa orang lain sebelum mereka menyapa",
+            "Aku belum pernah mengalami kesulitan dengan hukum", "Pada waktu-waktu tertentu aku merasa gembira tanpa alasan jelas",
+            "Aku ingin tidak terganggu oleh pikiran-pikiran tentang seks", "Bila beberapa orang bersama-sama dalam kesulitan, hal terbaik lakukan",
+            "Aku merasa tidak terganggu melihat binatang yang menderita", "Aku kira perasaan-ku lebih mendalam dari orang lain",
+            "Selama hidup-ku ini aku tidak pernah senang bermain dengan boneka", "Pada umumnya dalam hidup ini, aku rasakan berat",
+            "Aku sangat peka terhadap beberapa persoalan", "Sewaktu sekolah, aku merasa sukar bicara di depan kelas",
+            "Aku sayang pada Ibu-ku", "Walaupun bersama-sama orang banyak, aku sering merasa kesepian",
+            "Aku mendapat simpati yang sudah semestinya", "Aku menolak ikut serta dalam beberapa permainan",
+            "Aku merasa dapat berkawan semudah orang lain", "Aku tidak suka ada orang-orang di sekitar-ku",
+            "Menurut orang, aku berjalan-jalan sewaktu tidur", "Orang yang memberikan peluang mencuri sama salahnya pencurinya",
+            "Menurut pendapat-ku, hampir setiap orang akan berbohong", "Aku lebih perasa dari kebanyakan orang",
+            "Kebanyakan orang tidak begitu suka mengulurkan tangan menolong", "Kebanyakan mimpi-ku adalah tentang seks",
+            "Orang tua dan keluarga-ku sering menyalahkan aku", "Aku mudah sekali menjadi canggung dan malu-malu",
+            "Aku merisaukan soal uang dan pekerjaan", "Aku belum pernah jatuh cinta pada siapa pun juga",
+            "Beberapa hal yang dilakukan keluarga-ku menakutkan aku", "Aku hampir tidak pernah bermimpi",
+            "Leher-ku sering membercak merah", "Aku tidak pernah lumpuh atau mengalami kelemahan otot yang berat",
+            "Kadang-kadang suara-ku menghilang atau berubah", "Orang tua-ku sering membuat aku menuruti kehendaknya",
+            "Ada kalanya tercium oleh-ku bau yang aneh", "Aku tidak dapat memusatkan pikiran-ku pada satu hal saja",
+            "Aku ada alasan untuk merasa iri hati terhadap keluarga-ku", "Aku hampir selalu merasa cemas terhadap sesuatu hal",
+            "Aku mudah menjadi kurang sabar terhadap orang-orang", "Sering sekali aku ingin mengalami mati",
+            "Kadang-kadang aku begitu bersemangat dan bergairah, sukar tidur", "Sesungguhnya lebih banyak persoalan yang aku risaukan",
+            "Tiada seorang-pun yang banyak peduli terhadap apa terjadi diri-ku", "Ada kalanya pendengaran-ku sedemikian tajamnya, terganggu",
+            "Aku cepat sekali lupa tentang apa yang dikatakan orang pada-ku", "Biasanya aku berpikir-pikir dahulu sebelum melakukan sesuatu",
+            "Aku sering menghindar bertemu seseorang dengan mengubah arah", "Aku sering merasa seakan-akan semuanya semu",
+            "Satu-satunya bagian menarik surat kabar adalah ruang komik", "Aku punya kebiasaan menghitung benda-benda yang tidak perlu",
+            "Aku tidak punya musuh yang benar-benar bermaksud mencelakakan aku", "Aku cenderung untuk waspada terhadap orang berlebihan ramahnya",
+            "Aku merasa pikiran-ku aneh dan asing", "Aku menjadi cemas dan gelisah bila harus bepergian",
+            "Aku biasanya mengharapkan usaha-ku akan berhasil", "Bila aku seorang diri, aku mendengar suara-suara yang aneh",
+            "Aku takut pada benda atau orang yang aku ketahui tidak membahayakan", "Aku tidak takut masuk sendirian ke dalam suatu ruangan",
+            "Aku takut menggunakan pisau atau benda yang tajam lainnya", "Kadang-kadang aku senang menyakiti orang yang aku sayangi",
+            "Aku dengan mudah dapat membuat orang-orang takut pada-ku", "Aku merasa lebih sukar memusatkan perhatian dari orang lain",
+            "Aku telah beberapa kali meninggalkan suatu pekerjaan", "Kata-kata busuk seringkali muncul dalam pikiran-ku",
+            "Kadang-kadang beberapa pikiran tidak penting memenuhi benak-ku", "Hampir setiap hari ada saja kejadian yang menakutkan aku",
+            "Kadang-kadang aku penuh semangat dan tenaga", "Aku cenderung menganggap segala sesuatunya sulit dan sukar",
+            "Ada kalanya aku senang disakiti oleh orang yang aku cintai", "Orang-orang mengatakan hal-hal yang menghina dan kasar",
+            "Aku merasa tidak betah di dalam rumah", "Aku biasanya sadar tentang diri sendiri",
+            "Seseorang telah mengendalikan pikiran-ku", "Dalam pesta, aku lebih suka duduk sendirian atau seorang lain",
+            "Orang-orang sering mengecewakan aku", "Kadang-kadang aku merasa kesulitan-ku bertumpuk-tumpuk",
+            "Aku senang pergi ke pesta dansa", "Pada waktu-waktu tertentu, pikiran-ku bekerja lebih lambat",
+            "Ketika dalam kereta api atau bus, aku sering bercakap orang baru", "Aku senang bersama anak-anak",
+            "Aku menyenangi bermain judi kecil-kecilan", "Bila aku diberi kesempatan, aku dapat berbuat bermanfaat besar",
+            "Aku sering menjumpai orang-orang dianggap ahli, ternyata tidak unggul", "Aku merasa seperti orang yang gagal mendengar keberhasilan seseorang",
+            "Aku sering berangan-angan menjadi anak-anak kembali", "Aku tidak pernah lebih bahagia daripada ketika aku sendirian",
+            "Apabila aku diberi kesempatan, aku bisa menjadi pemimpin baik", "Aku merasa malu mendengar cerita jorok",
+            "Pada umumnya orang menuntut penghargaan lebih baik hak-hak", "Aku senang menghadiri pertemuan sosial untuk kebersamaan",
+            "Aku berusaha mengingat-ingat cerita baik untuk disampaikan", "Aku pernah beberapa kali merasa seseorang memaksa aku sihir",
+            "Sukar bagi-ku meninggalkan suatu tugas, walaupun hanya sementara", "Aku sering sekali tidak terlibat gosip membicarakan hal kelompok",
+            "Aku sering menemukan orang-orang iri hati pada ide-ide baik-ku", "Aku menyenangi kegembiraan dalam suatu keramaian",
+            "Aku tidak berkeberatan menghadapi orang yang tidak aku kenal", "Seseorang telah mencoba mempengaruhi pikiran-ku",
+            "Aku ingat pernah pura-pura sakit menghindari sesuatu", "Kerisauan-ku seakan-akan menghilang berkumpul kawan-kawan bergembira",
+            "Aku merasa cepat menyerah bila keadaan memburuk", "Aku suka memberi tahu kepada orang-orang pendirian-ku",
+            "Ada kalanya aku merasa begitu bersemangat, tidak perlu tidur", "Sedapat mungkin, aku menghindar berada di keramaian",
+            "Aku menarik diri dalam menghadapi krisis atau kesulitan", "Aku biasanya melakukan apa yang ingin aku lakukan",
+            "Aku senang pesta dan kumpul-kumpul", "Aku sering mengharapkan menjadi jenis kelamin yang berbeda",
+            "Aku tidak mudah dibuat marah", "Aku telah melakukan beberapa hal yang buruk pada masa lalu",
+            "Kebanyakan orang menggunakan cara-cara tidak baik bertahan hidup", "Bila orang menanyakan soal-soal pribadi, aku menjadi risau",
+            "Aku tidak merasa aku mampu merencanakan masa depan-ku", "Aku tidak bahagia dengan keadaan diri-ku sendiri",
+            "Aku menjadi marah bila teman atau keluarga menasehati aku", "Aku sering dipukuli sewaktu masih anak-anak",
+            "Aku merasa terganggu, bila orang mengatakan hal baik tentang diri-ku", "Aku tidak suka mendengarkan pendapat orang lain tentang hidup-ku",
+            "Aku sering tidak sepaham dengan orang-orang dekat dengan aku", "Bila keadaan menjadi buruk sekali, aku mengandalkan keluarga",
+            "Aku suka bermain rumah-rumahan ketika masih kanak-kanak", "Aku tidak takut pada api",
+            "Aku kadang-kadang menjauhi orang lain, khawatir hal yang disesali", "Aku dapat mengungkapkan perasaan hanya minum alkohol",
+            "Aku jarang sekali diserang perasaan murung", "Aku sering dikatakan berkepala panas",
+            "Aku harap aku mampu mengatasi perasaan khawatir kata-kata-ku", "Aku merasa tidak mampu memberi tahu siapa-pun tentang diri-ku",
+            "Salah satu yang aku takutkan adalah Kilat", "Aku suka membuat orang menebak-nebak apa akan aku lakukan",
+            "Rencana-ku sering tampak penuh dengan kesulitan", "Aku takut sendirian di dalam kegelapan",
+            "Aku sering merasa takut salah paham mencoba membantu seseorang", "Angin badai menakutkan aku",
+            "Aku sering meminta nasehat kepada orang-orang", "Masa depan adalah penuh dengan ketidak-pastian",
+            "Aku sering merasa tidak peduli, walaupun semuanya berjalan baik", "Aku tidak takut dengan air",
+            "Aku sering berpikir berhari-hari sebelum memutuskan", "Orang-orang sering salah paham terhadap itikad baik-ku",
+            "Aku tidak ada gangguan menelan", "Aku biasanya tenang dan tidak mudah menjadi gelisah",
+            "Aku akan merasa senang sekali bila dapat mengalahkan penjahat", "Aku patut dihukum berat untuk dosa-dosa-ku",
+            "Aku mudah mengalami kekecewaan yang mendalam", "Walaupun aku tahu aku mampu menyelesaikan pekerjaan",
+            "Aku sering merasa jengkel bila seseorang mencoba menyalip aku", "Ada kalanya aku merasa tidak berguna sama sekali",
+            "Semasa muda aku sering membolos sekolah", "Satu atau lebih anggota keluarga-ku sangat mudah gugup",
+            "Ada kalanya aku bersikap kasar terhadap orang-orang", "Aku banyak risau tentang kemalangan-kemalangan",
+            "Aku punya pendirian politik yang kokoh", "Aku ingin menjadi pembalap mobil",
+            "Seseorang boleh saja menolak hukum, asal tidak melanggarnya", "Ada orang tertentu yang sangat tidak aku sukai",
+            "Aku merasa gelisah bila harus menunggu", "Aku mudah menangguhkan sesuatu yang akan aku lakukan",
+            "Ketika masih muda, aku menyukai hal-hal yang mendebarkan", "Aku sering cenderung beralih dari pendapat-ku",
+            "Aku terganggu oleh orang-orang yang mengamati aku", "Orang yang mengasuh aku waktu kecil sangat ketat",
+            "Dulu aku suka bermain petak umpat dan lompat tali", "Aku tidak pernah melihat sesuatu penampakan",
+            "Aku beberapa kali mengubah pandangan tentang karya-karya hidup", "Aku tidak pernah minum obat-obatan apapun kecuali perintah dokter",
+            "Aku sering menyesal karena aku mudah marah dan resah", "Di waktu sekolah, angka-angka-ku mengenai perilaku buruk",
+            "Aku menyukai olahraga yang berbahaya", "Aku tidak pernah merasa bersalah atas apa yang aku lakukan",
+            "Aku sering mencuri ketika masih muda", "Aku tidak pernah berjudi dengan uang",
+            "Aku sering mabuk ketika masih muda", "Aku tidak pernah terlibat dalam perkelahian",
+            "Aku tidak pernah membohongi orang lain", "Aku sering terganggu oleh pikiran tidak menyenangkan",
+            "Aku sering merasa cemas akan kesehatan-ku", "Aku sering merasa tegang dan gugup",
+            "Aku sering merasa panik tanpa alasan", "Aku sering merasa pusing dan sempoyongan",
+            "Aku sering merasa nyeri di berbagai bagian tubuh", "Aku sering merasa kurang berenergi",
+            "Aku sering merasa lemah dan lelah", "Aku sering merasa tidak enak badan tanpa sebab",
+            "Aku sering merasa sesak napas", "Aku sering merasa palpitasi jantung",
+            "Aku sering merasa mual atau perut kembung", "Aku sering merasa sembelit atau diare",
+            "Aku sering kehilangan nafsu makan", "Aku sering merasa berat badan kurang atau lebih",
+            "Aku sering merasa sakit kepala", "Aku sering merasa nyeri leher atau pundak",
+            "Aku sering merasa nyeri punggung bawah", "Aku sering merasa nyeri lutut atau sendi",
+            "Aku sering merasa nyeri pada tangan atau kaki", "Aku sering merasa nyeri pada dada",
+            "Aku sering merasa nyeri pada perut", "Aku tidak dapat berhenti berpikir tentang kesehatan-ku",
+            "Aku sering mencoba memulai diet atau olahraga", "Aku tidak dapat menghentikan kebiasaan buruk-ku",
+            "Aku sering merasa desak kuat melakukan sesuatu", "Aku tidak dapat mengambil keputusan dengan mudah",
+            "Aku sering merasa bingung dan tidak tahu harus lakukan", "Aku sering merasa sangat kecil hati dan malu",
+            "Aku sering merasa sangat malu dan malu-malu", "Aku sering merasa sangat tertekan dan kesal",
+            "Aku sering merasa sangat kesal dan marah", "Aku sering merasa sangat sedih dan putus asa",
+            "Aku sering merasa sangat cemas dan khawatir", "Aku sering merasa sangat gugup dan tegang",
+            "Aku sering merasa sangat panik", "Aku sering merasa sangat takut",
+            "Aku sering merasa sangat tidak berdaya", "Aku sering merasa sangat terisolasi",
+            "Aku sering merasa sangat kesepian", "Aku sering merasa sangat rendah diri",
+            "Aku sering merasa sangat tidak percaya diri", "Aku sering merasa sangat tidak layak",
+            "Aku sering merasa sangat gagal", "Aku sering merasa sangat putus asa",
+            "Ada kalanya aku merasa tidak berguna sama sekali", "Aku jarang sekali merasa murung",
+            "Aku merasa cepat lelah dan lemah", "Aku selalu berharap ada yang peduli dengan diri-ku",
+            "Aku tidak dapat menyelesaikan pekerjaan", "Sering ada hal yang membuat aku takut",
+            "Aku banyak masalah emosi", "Aku merasa kesepian yang mendalam",
+            "Pikiran-ku bekerja sangat lambat", "Aku tidak dapat tidur dengan nyenyak",
+            "Aku sering merasa putus asa", "Aku sering merasa depresi",
+            "Pikiran-ku sering kacau atau bingung", "Aku merasa tubuh-ku tidak berfungsi dengan baik",
+            "Aku sering merasa tidak enak badan", "Aku tidak percaya pada diri sendiri",
+            "Aku merasa seperti kegagalan dalam hidup", "Aku sering merasa tidak layak hidup",
+            "Aku merasa tidak ada gunanya", "Aku sering ingin mengakhiri segalanya",
+            "Aku merasa hidup-ku penuh masalah", "Aku sering merasa kecewa dengan diri sendiri",
+            "Aku tidak dapat mengontrol emosi-ku", "Pikiran-ku sering kosong",
+            "Aku sering merasa takut tanpa alasan", "Aku tidak dapat fokus pada apa pun",
+            "Aku merasa hidup-ku tidak bermakna", "Aku sering merasa sendirian meskipun bersama orang",
+            "Aku sering merasa khawatir berlebihan", "Aku tidak pernah puas dengan hidup",
+            "Aku merasa diakhiri segala sesuatu", "Pikiran-ku penuh dengan pikiran negatif",
+            "Aku merasa tubuhku penuh dengan penyakit", "Aku sering merasa sangat cemas",
+            "Aku tidak dapat mengatasi stres", "Aku merasa banyak masalah kesehatan",
+            "Aku sering merasa tidak ada harapan", "Aku merasa diri saya tidak berharga",
+            "Aku tidak dapat tidur karena khawatir", "Aku sering merasa frustrasi",
+            "Aku merasa banyak yang salah dengan diri saya", "Aku sering merasa takut akan masa depan",
+            "Aku merasa tidak ada yg menyukai saya", "Aku tidak dapat berhenti mengkhawatirkan hal-hal",
+            "Aku merasa kehidupan saya tidak berarti", "Aku sering merasa terasing dari orang lain",
+            "Aku tidak dapat menemukan kebahagiaan dalam hal apapun", "Aku merasa seperti orang aneh",
+            "Aku sering merasa khawatir akan hal kecil", "Aku tidak dapat merasa senang lagi",
+            "Aku sering merasa waspada dan siaga", "Aku menjadi sangat mudah marah bila orang tidak melaksanakan pekerjaan",
+            "Bila aku menjadi tegang, aku pasti mengalami sakit kepala", "Aku suka tawar-menawar yang alot",
+            "Kebanyakan laki-laki tidak setia kepada istri-nya", "Akhir-akhir ini aku telah hilang semangat mengatasi masalah-masalah",
+            "Bila aku minum minuman beralkohol, aku menjadi marah-marah", "Aku bekerja sangat baik bila aku diberikan batas waktu pasti",
+            "Aku menjadi sangat marah kepada seseorang", "Ada kalanya muncul pikiran-pikiran menakutkan tentang keluarga-ku",
+            "Orang-orang mengatakan aku punya masalah dengan alkohol", "Aku selalu punya waktu terlalu sedikit untuk melaksanakan sesuatu",
+            "Pikiran-ku akhir-akhir ini makin cenderung ke soal kematian", "Aku sering menyimpan barang-barang yang mungkin tidak pernah aku gunakan",
+            "Ada kalanya aku menjadi sangat marah, sehingga telah melukai seseorang", "Apapun yang aku lakukan belakangan ini, aku merasa seperti diuji",
+            "Sekarang ini hanya sedikit yang dapat aku lakukan bersama keluarga-ku", "Aku kadang-kadang mendengar pikiran-pikiran-ku berbicara keras",
+            "Ketika aku sedih, kunjungan kawan-kawan-ku dapat menghilangkannya", "Kebanyakan dari apa yang terjadi pada diri-ku tampaknya sudah pernah",
+            "Ketika hidup-ku menjadi sulit, ini membuat aku ingin menyerah", "Aku tidak mampu berjalan masuk ke kamar gelap sendirian",
+            "Aku sangat mengkhawatirkan mengenai keuangan", "Laki-laki seharusnya menjadi kepala keluarga",
+            "Tempat satu-satunya dimana aku merasa tenang adalah di rumah sendiri", "Orang-orang yang bekerja dengan aku tidak simpati masalah-masalah-ku",
+            "Aku puas dengan jumlah uang yang aku hasilkan", "Aku biasanya punya tenaga yang cukup melakukan pekerjaan-ku",
+            "Sulit bagi-ku untuk menerima pujian-pujian", "Pada kebanyakan perkawinan, satu atau kedua pasangannya tidak bahagia",
+            "Aku hampir tidak pernah lepas kendali diri", "Apa yang diberitahu orang kepada aku membutuhkan banyak usaha",
+            "Ketika aku sedih atau murung, pekerjaan-ku menjadi terlantar", "Kebanyakan pasangan perkawinan tidak banyak menunjukkan rasa kasih sayang"
+        ];
+
+        let answers = {};
+        let autoSaveTimer;
+
+        // Restore data from localStorage on load
+        window.addEventListener('load', function() {
+            restoreFromLocalStorage();
+        });
+
+        function restoreFromLocalStorage() {
+            const savedAnswers = localStorage.getItem('mmpi_answers');
+            const savedBiodata = localStorage.getItem('mmpi_biodata');
+
+            if (savedAnswers) {
+                answers = JSON.parse(savedAnswers);
+                showWarningMessage('✓ Jawaban sebelumnya ditemukan dan telah dipulihkan!');
+            }
+
+            if (savedBiodata) {
+                const biodata = JSON.parse(savedBiodata);
+                document.getElementById('nama').value = biodata.nama || '';
+                document.getElementById('ttl').value = biodata.ttl || '';
+                document.getElementById('jk').value = biodata.jk || '';
+                document.getElementById('pendidikan').value = biodata.pendidikan || '';
+                document.getElementById('pekerjaan').value = biodata.pekerjaan || '';
+                document.getElementById('alamat').value = biodata.alamat || '';
+                document.getElementById('umur').value = biodata.umur || '';
+            }
+
+            updateProgress();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('mmpi_answers', JSON.stringify(answers));
+            const biodata = {
+                nama: document.getElementById('nama').value,
+                ttl: document.getElementById('ttl').value,
+                jk: document.getElementById('jk').value,
+                pendidikan: document.getElementById('pendidikan').value,
+                pekerjaan: document.getElementById('pekerjaan').value,
+                alamat: document.getElementById('alamat').value,
+                umur: document.getElementById('umur').value
+            };
+            localStorage.setItem('mmpi_biodata', JSON.stringify(biodata));
+            showAutoSaveIndicator();
+        }
+
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.classList.add('visible');
+            setTimeout(() => {
+                indicator.classList.remove('visible');
+            }, 2000);
+        }
+
+        function showWarningMessage(msg) {
+            const infoBox = document.querySelector('.info-box');
+            const warning = document.createElement('div');
+            warning.className = 'warning-message';
+            warning.textContent = msg;
+            infoBox.parentNode.insertBefore(warning, infoBox.nextSibling);
+            setTimeout(() => warning.remove(), 5000);
+        }
+
+        function hitungUmur() {
+            const ttlInput = document.getElementById('ttl');
+            if (!ttlInput.value) return;
+
+            const ttl = new Date(ttlInput.value);
+            const today = new Date();
+            let umur = today.getFullYear() - ttl.getFullYear();
+            const bulanBeda = today.getMonth() - ttl.getMonth();
+
+            if (bulanBeda < 0 || (bulanBeda === 0 && today.getDate() < ttl.getDate())) {
+                umur--;
+            }
+
+            document.getElementById('umur').value = umur > 0 ? umur : '';
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tab === 'questions') {
+                renderQuestions();
+            } else if (tab === 'review') {
+                renderReview();
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            allQuestions.forEach((q, idx) => {
+                const num = idx + 1;
+                const div = document.createElement('div');
+                div.className = 'question-item';
+                div.innerHTML = `
+                    <div class="question-num">${num}</div>
+                    <div class="question-text">${q}</div>
+                    <div class="answer-buttons">
+                        <button class="answer-btn plus ${answers[num] === '+' ? 'selected' : ''}" 
+                                onclick="setAnswer(${num}, '+')">Ya (+)</button>
+                        <button class="answer-btn minus ${answers[num] === '-' ? 'selected' : ''}" 
+                                onclick="setAnswer(${num}, '-')">Tidak (-)</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            updateProgress();
+        }
+
+        function setAnswer(num, value) {
+            answers[num] = value;
+            updateProgress();
+            saveToLocalStorage();
+            renderQuestions();
+        }
+
+        function updateProgress() {
+            const answered = Object.keys(answers).length;
+            const total = 567;
+            const percent = Math.round((answered / total) * 100);
+
+            document.getElementById('totalAnswered').textContent = answered;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function saveBiodata() {
+            if (!document.getElementById('nama').value || !document.getElementById('ttl').value || !document.getElementById('jk').value) {
+                alert('⚠️ Mohon isi Nama, Tanggal Lahir, dan Jenis Kelamin');
+                return;
+            }
+            saveToLocalStorage();
+            alert('✓ Biodata tersimpan. Lanjut ke pernyataan!');
+            switchTab('questions');
+        }
+
+        function renderReview() {
+            const container = document.getElementById('reviewContainer');
+            container.innerHTML = '<h3>Ringkasan Jawaban Anda (Urut Nomor):</h3>';
+
+            const sortedAnswers = Object.entries(answers).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+            let html = '<table class="review-table"><tr><th>No</th><th>Jawaban</th><th>No</th><th>Jawaban</th></tr>';
+            for (let i = 0; i < sortedAnswers.length; i += 2) {
+                const [num1, ans1] = sortedAnswers[i];
+                const [num2, ans2] = sortedAnswers[i + 1] || ['-', '-'];
+
+                html += `<tr>
+                    <td>${num1}</td>
+                    <td>${ans1 === '+' ? '✓ Ya' : '✗ Tidak'}</td>
+                    <td>${num2 === '-' ? '' : num2}</td>
+                    <td>${num2 === '-' ? '' : (ans2 === '+' ? '✓ Ya' : '✗ Tidak')}</td>
+                </tr>`;
+            }
+            html += '</table>';
+
+            container.innerHTML += html;
+        }
+
+        function calculateScores() {
+            const answered = Object.keys(answers).length;
+            const resultDiv = document.getElementById('scoringResult');
+
+            resultDiv.innerHTML = `
+                <div class="success-message">
+                    ✓ Perhitungan selesai! Total jawaban: ${answered}/567
+                </div>
+                <div style="background: var(--bg-light); padding: 20px; border-radius: 6px;">
+                    <h3>Hasil Penilaian</h3>
+                    <p style="margin: 15px 0;"><strong>Catatan:</strong> Hasil ini adalah preview. Untuk hasil lengkap dengan interpretasi klinis, silakan hubungi psikolog profesional.</p>
+                    <p><strong>Total Pernyataan Terjawab:</strong> ${answered}/567 (${Math.round((answered/567)*100)}%)</p>
+                </div>
+            `;
+        }
+
+        function exportToExcel() {
+            const nama = document.getElementById('nama').value || 'Responden';
+            const ttl = document.getElementById('ttl').value;
+            const jk = document.getElementById('jk').value;
+            const pendidikan = document.getElementById('pendidikan').value;
+            const pekerjaan = document.getElementById('pekerjaan').value;
+            const umur = document.getElementById('umur').value;
+            const alamat = document.getElementById('alamat').value;
+
+            let csvContent = "HASIL PENILAIAN MMPI-2\n\n";
+            csvContent += "INFORMASI RESPONDEN\n";
+            csvContent += `Nama,${nama}\nTanggal Lahir,${ttl}\nUmur,${umur}\nJenis Kelamin,${jk}\nPendidikan,${pendidikan}\nPekerjaan,${pekerjaan}\nAlamat,${alamat}\nTanggal Pemeriksaan,${new Date().toLocaleDateString('id-ID')}\n\n`;
+
+            csvContent += "LEMBAR JAWABAN MMPI-2\n";
+            csvContent += "No,Ya,Tidak,No,Ya,Tidak\n";
+
+            for (let i = 1; i <= 567; i += 2) {
+                const ans1Ya = answers[i] === '+' ? '✓' : '';
+                const ans1Tidak = answers[i] === '-' ? '✓' : '';
+                const ans2Ya = answers[i + 1] === '+' ? '✓' : '';
+                const ans2Tidak = answers[i + 1] === '-' ? '✓' : '';
+
+                csvContent += `${i},${ans1Ya},${ans1Tidak},${i + 1},${ans2Ya},${ans2Tidak}\n`;
+            }
+
+            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `MMPI2_${nama.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        function exportToPDF() {
+            const nama = document.getElementById('nama').value || 'Responden';
+            const ttl = document.getElementById('ttl').value;
+            const jk = document.getElementById('jk').value;
+            const pendidikan = document.getElementById('pendidikan').value;
+            const pekerjaan = document.getElementById('pekerjaan').value;
+            const umur = document.getElementById('umur').value;
+            const alamat = document.getElementById('alamat').value;
+
+            const sortedAnswers = Object.entries(answers).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+            let tableRows = '';
+            for (let i = 0; i < sortedAnswers.length; i += 2) {
+                const [num1, ans1] = sortedAnswers[i];
+                const [num2, ans2] = sortedAnswers[i + 1] || ['-', '-'];
+
+                const ans1Ya = ans1 === '+' ? '✓' : '';
+                const ans1Tidak = ans1 === '-' ? '✓' : '';
+                const ans2Ya = ans2 === '+' ? '✓' : '';
+                const ans2Tidak = ans2 === '-' ? '✓' : '';
+
+                tableRows += `<tr>
+                    <td>${num1}</td><td>${ans1Ya}</td><td>${ans1Tidak}</td>
+                    <td>${num2 === '-' ? '' : num2}</td>
+                    <td>${num2 === '-' ? '' : ans2Ya}</td>
+                    <td>${num2 === '-' ? '' : ans2Tidak}</td>
+                </tr>`;
+            }
+
+            const printContent = `
+                <html>
+                <head>
+                    <title>MMPI-2 Assessment</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; font-size: 10px; }
+                        h1 { text-align: center; font-size: 12px; }
+                        h2 { font-size: 10px; margin-top: 10px; border-bottom: 1px solid #000; }
+                        .info-row { display: flex; margin: 3px 0; }
+                        .info-label { width: 120px; font-weight: bold; }
+                        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                        th, td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 9px; }
+                        th { background-color: #f0f0f0; }
+                        .page-break { page-break-after: always; }
+                    </style>
+                </head>
+                <body>
+                    <h1>HASIL PENILAIAN MMPI-2</h1>
+                    <h2>INFORMASI RESPONDEN</h2>
+                    <div class="info-row"><div class="info-label">Nama:</div><div>${nama}</div></div>
+                    <div class="info-row"><div class="info-label">TTL:</div><div>${ttl}</div></div>
+                    <div class="info-row"><div class="info-label">Umur:</div><div>${umur} tahun</div></div>
+                    <div class="info-row"><div class="info-label">Jenis Kelamin:</div><div>${jk}</div></div>
+                    <div class="info-row"><div class="info-label">Pendidikan:</div><div>${pendidikan}</div></div>
+                    <div class="info-row"><div class="info-label">Pekerjaan:</div><div>${pekerjaan}</div></div>
+                    <div class="info-row"><div class="info-label">Tanggal:</div><div>${new Date().toLocaleDateString('id-ID')}</div></div>
+
+                    <h2>LEMBAR JAWABAN MMPI-2</h2>
+                    <table>
+                        <tr><th>No</th><th>Ya</th><th>Tidak</th><th>No</th><th>Ya</th><th>Tidak</th></tr>
+                        ${tableRows}
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 250);
+        }
+
+        function resetForm() {
+            if (confirm('Yakin ingin menghapus semua data?')) {
+                answers = {};
+                localStorage.removeItem('mmpi_answers');
+                localStorage.removeItem('mmpi_biodata');
+                document.getElementById('biodataForm').reset();
+                updateProgress();
+                switchTab('biodata');
+                alert('✓ Semua data telah dihapus');
+            }
+        }
+
+        // Auto-save setiap 30 detik
+        setInterval(() => {
+            if (Object.keys(answers).length > 0) {
+                saveToLocalStorage();
+            }
+        }, 30000);
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
