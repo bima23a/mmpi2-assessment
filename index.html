@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMPI-2 Assessment Tool v4.0</title>
+    <title>MMPI-2 Assessment Tool</title>
     <style>
         :root {
             --primary: #2180d4;
@@ -14,6 +14,7 @@
             --border: #e1e8ed;
             --success: #27ae60;
             --error: #e74c3c;
+            --warning: #f39c12;
         }
 
         * {
@@ -134,19 +135,14 @@
             gap: 20px;
         }
 
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .questions-container {
             display: grid;
             grid-template-columns: 1fr;
             gap: 15px;
-            max-height: 600px;
-            overflow-y: auto;
-            padding-right: 10px;
+            /* Scroll dihapus di sini karena kita pakai paginasi */
+            /* max-height: 600px; overflow-y: auto; */
+            padding-right: 0;
+            margin-bottom: 20px;
         }
 
         .question-item {
@@ -242,6 +238,23 @@
 
         .btn-secondary:hover {
             background: white;
+        }
+
+        /* Styling Pagination Controls */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 20px;
+        }
+
+        .page-info {
+            font-weight: 600;
+            color: var(--text-dark);
         }
 
         .summary {
@@ -355,12 +368,113 @@
         .auto-save-indicator.visible {
             opacity: 1;
         }
+
+        /* === ANIMASI HIGHLIGHT JAWABAN KOSONG === */
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .highlight-missing {
+            border: 2px solid var(--error) !important;
+            background-color: #fdf2f2 !important;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        /* === MOBILE THUMB-FRIENDLY (RESPONSIVE) === */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .questions-container {
+                /* Hapus max-height agar tidak double scroll di HP saat pagination */
+                max-height: none; 
+            }
+            
+            .pagination-controls {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .pagination-controls button {
+                width: 100%;
+            }
+
+            /* Layout kartu soal vertikal */
+            .question-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 15px;
+                position: relative;
+            }
+
+            /* Nomor soal di atas */
+            .question-num {
+                text-align: left;
+                font-size: 12px;
+                color: var(--text-light);
+                margin-bottom: 5px;
+            }
+            .question-num::before {
+                content: "No. ";
+            }
+
+            /* Teks soal diperbesar */
+            .question-text {
+                font-size: 16px;
+                margin-bottom: 10px;
+                font-weight: 500;
+            }
+
+            /* Tombol jawaban besar & mudah ditekan */
+            .answer-buttons {
+                display: flex;
+                width: 100%;
+                gap: 12px;
+            }
+
+            .answer-btn {
+                padding: 15px 10px;
+                font-size: 16px;
+                border-width: 2px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 55px; /* Tinggi ideal jempol */
+            }
+
+            /* Warna dasar tombol */
+            .answer-btn.plus {
+                border-color: #27ae60;
+                color: #27ae60;
+                background: #f0fff4;
+            }
+            .answer-btn.minus {
+                border-color: #e74c3c;
+                color: #e74c3c;
+                background: #fff5f5;
+            }
+
+            /* Warna saat aktif */
+            .answer-btn.plus.selected {
+                background: #27ae60;
+                color: white;
+            }
+            .answer-btn.minus.selected {
+                background: #e74c3c;
+                color: white;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📋 MMPI-2 Assessment Tool v4.0</h1>
+            <h1>📋 MMPI-2 Assessment Tool</h1>
             <p>Minnesota Multiphasic Personality Inventory - Versi 2 (567 Pernyataan)</p>
         </header>
 
@@ -371,7 +485,6 @@
             <button class="tab-btn" onclick="switchTab('scoring')">Penilaian</button>
         </div>
 
-        <!-- Tab Biodata -->
         <div id="biodata" class="tab-content active">
             <h2>Informasi Responden</h2>
             <div class="info-box">
@@ -405,17 +518,14 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="pendidikan">Pendidikan Terakhir</label>
-                        <input type="text" id="pendidikan" placeholder="Contoh: S1, SMA">
-                    </div>
-                    <div class="form-group">
-                        <label for="pekerjaan">Pekerjaan</label>
-                        <input type="text" id="pekerjaan" placeholder="Masukkan pekerjaan">
-                    </div>
+                <div class="form-group">
+                    <label for="pendidikan">Pendidikan Terakhir</label>
+                    <input type="text" id="pendidikan" placeholder="Contoh: S1, SMA">
                 </div>
-
+                <div class="form-group">
+                    <label for="pekerjaan">Pekerjaan</label>
+                    <input type="text" id="pekerjaan" placeholder="Masukkan pekerjaan">
+                </div>
                 <div class="form-group">
                     <label for="alamat">Alamat</label>
                     <textarea id="alamat" rows="3" placeholder="Masukkan alamat lengkap"></textarea>
@@ -427,11 +537,10 @@
             </form>
         </div>
 
-        <!-- Tab Pernyataan -->
         <div id="questions" class="tab-content">
             <h2>Pernyataan MMPI-2</h2>
             <div class="info-box">
-                Berikan jawaban dengan jujur sesuai pendapat Anda. Tidak ada jawaban yang benar atau salah. Jawaban otomatis tersimpan setiap 30 detik.
+                Berikan jawaban dengan jujur sesuai pendapat Anda. Tidak ada jawaban yang benar atau salah.
             </div>
 
             <div class="summary">
@@ -455,13 +564,18 @@
 
             <div id="questionsContainer" class="questions-container"></div>
 
-            <div class="navigation">
-                <button class="btn btn-secondary" onclick="switchTab('biodata')">← Kembali</button>
-                <button class="btn btn-primary" onclick="switchTab('review')">Lanjut ke Review →</button>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary" id="prevBtn" onclick="changePage(-1)">← Sebelumnya</button>
+                <div class="page-info" id="pageIndicator">Halaman 1 dari 12</div>
+                <button class="btn btn-primary" id="nextBtn" onclick="changePage(1)">Selanjutnya →</button>
+            </div>
+
+            <div class="navigation" style="margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="switchTab('biodata')">← Biodata</button>
+                <button class="btn btn-secondary" onclick="switchTab('review')">Lihat Review</button>
             </div>
         </div>
 
-        <!-- Tab Review -->
         <div id="review" class="tab-content">
             <h2>Review Jawaban</h2>
             <div class="info-box">
@@ -471,12 +585,16 @@
             <div id="reviewContainer" style="max-height: 600px; overflow-y: auto; padding-right: 10px;"></div>
 
             <div class="navigation">
-                <button class="btn btn-secondary" onclick="switchTab('questions')">← Ubah Jawaban</button>
+                <button class="btn btn-secondary" onclick="switchTab('questions')">← Lihat Semua</button>
+                
+                <button class="btn" style="background: var(--warning); color: white;" onclick="checkUnanswered()">
+                    🔍 Cek Jawaban Kosong
+                </button>
+
                 <button class="btn btn-primary" onclick="switchTab('scoring')">Lanjut ke Penilaian →</button>
             </div>
         </div>
 
-        <!-- Tab Penilaian -->
         <div id="scoring" class="tab-content">
             <h2>Hasil Penilaian MMPI-2</h2>
             
@@ -496,6 +614,7 @@
     <div class="auto-save-indicator" id="autoSaveIndicator">✓ Tersimpan</div>
 
     <script>
+        // Data Soal Lengkap
         const allQuestions = [
             "Aku suka majalah teknik", "Nafsu makan-ku baik", "Aku bangun dengan rasa nyaman hampir setiap pagi",
             "Aku mengira aku dapat menyukai pekerjaan perpustakaan", "Aku mudah terbangun oleh suara berisik",
@@ -775,7 +894,11 @@
         ];
 
         let answers = {};
-        let autoSaveTimer;
+        
+        // --- LOGIKA PAGINASI ---
+        let currentPage = 1;
+        const questionsPerPage = 50;
+        const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
 
         // Restore data from localStorage on load
         window.addEventListener('load', function() {
@@ -858,7 +981,14 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
             document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
+            
+            // Cari tombol yang sesuai dan aktifkan
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(tab)) {
+                    btn.classList.add('active');
+                }
+            });
 
             if (tab === 'questions') {
                 renderQuestions();
@@ -867,35 +997,74 @@
             }
         }
 
+        // --- FUNGSI RENDER SOAL DENGAN PAGINASI ---
         function renderQuestions() {
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
+            
+            // Scroll ke atas container saat ganti halaman
+            window.scrollTo({ top: container.offsetTop - 100, behavior: 'smooth' });
 
-            allQuestions.forEach((q, idx) => {
-                const num = idx + 1;
+            const startIndex = (currentPage - 1) * questionsPerPage;
+            const endIndex = startIndex + questionsPerPage;
+            
+            // Slice array soal sesuai halaman
+            const pageQuestions = allQuestions.slice(startIndex, endIndex);
+
+            pageQuestions.forEach((q, idx) => {
+                const globalNum = startIndex + idx + 1; // Nomor urut asli (1-567)
+                
                 const div = document.createElement('div');
                 div.className = 'question-item';
+                div.id = `q-row-${globalNum}`; // ID UNIK untuk scroll
+
                 div.innerHTML = `
-                    <div class="question-num">${num}</div>
+                    <div class="question-num">${globalNum}</div>
                     <div class="question-text">${q}</div>
                     <div class="answer-buttons">
-                        <button class="answer-btn plus ${answers[num] === '+' ? 'selected' : ''}" 
-                                onclick="setAnswer(${num}, '+')">Ya (+)</button>
-                        <button class="answer-btn minus ${answers[num] === '-' ? 'selected' : ''}" 
-                                onclick="setAnswer(${num}, '-')">Tidak (-)</button>
+                        <button class="answer-btn plus ${answers[globalNum] === '+' ? 'selected' : ''}" 
+                                onclick="setAnswer(${globalNum}, '+')">Ya (+)</button>
+                        <button class="answer-btn minus ${answers[globalNum] === '-' ? 'selected' : ''}" 
+                                onclick="setAnswer(${globalNum}, '-')">Tidak (-)</button>
                     </div>
                 `;
                 container.appendChild(div);
             });
 
+            updatePaginationControls();
             updateProgress();
+        }
+
+        function updatePaginationControls() {
+            document.getElementById('pageIndicator').textContent = `Halaman ${currentPage} dari ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+            
+            // Update style tombol disable
+            document.getElementById('prevBtn').style.opacity = currentPage === 1 ? '0.5' : '1';
+            document.getElementById('nextBtn').style.opacity = currentPage === totalPages ? '0.5' : '1';
+        }
+
+        function changePage(delta) {
+            const nextPage = currentPage + delta;
+            if (nextPage >= 1 && nextPage <= totalPages) {
+                currentPage = nextPage;
+                renderQuestions();
+            }
         }
 
         function setAnswer(num, value) {
             answers[num] = value;
             updateProgress();
             saveToLocalStorage();
-            renderQuestions();
+            
+            // Re-render hanya tombol di baris tersebut agar tidak reload satu halaman (UX lebih smooth)
+            const row = document.getElementById(`q-row-${num}`);
+            if(row) {
+                const btns = row.querySelectorAll('.answer-btn');
+                btns[0].className = `answer-btn plus ${value === '+' ? 'selected' : ''}`;
+                btns[1].className = `answer-btn minus ${value === '-' ? 'selected' : ''}`;
+            }
         }
 
         function updateProgress() {
@@ -918,23 +1087,72 @@
             switchTab('questions');
         }
 
+        // --- CEK JAWABAN KOSONG (SMART JUMP) ---
+        function checkUnanswered() {
+            let firstMissing = null;
+            
+            for (let i = 1; i <= 567; i++) {
+                if (!answers[i]) {
+                    firstMissing = i;
+                    break;
+                }
+            }
+
+            if (firstMissing) {
+                // Hitung halaman berapa soal ini berada
+                const targetPage = Math.ceil(firstMissing / questionsPerPage);
+                
+                alert(`⚠️ Peringatan: Pernyataan Nomor ${firstMissing} (Halaman ${targetPage}) belum dijawab!`);
+                
+                // Pindah ke tab questions
+                switchTab('questions');
+                
+                // Set halaman target
+                currentPage = targetPage;
+                renderQuestions(); // Render halaman target
+
+                // Tunggu render selesai baru scroll
+                setTimeout(() => {
+                    const el = document.getElementById(`q-row-${firstMissing}`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('highlight-missing');
+                        setTimeout(() => {
+                            el.classList.remove('highlight-missing');
+                        }, 2000);
+                    }
+                }, 150);
+                
+            } else {
+                alert('✓ Luar biasa! Semua 567 pernyataan telah dijawab.');
+            }
+        }
+
         function renderReview() {
             const container = document.getElementById('reviewContainer');
             container.innerHTML = '<h3>Ringkasan Jawaban Anda (Urut Nomor):</h3>';
 
             const sortedAnswers = Object.entries(answers).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
 
-            let html = '<table class="review-table"><tr><th>No</th><th>Jawaban</th><th>No</th><th>Jawaban</th></tr>';
-            for (let i = 0; i < sortedAnswers.length; i += 2) {
-                const [num1, ans1] = sortedAnswers[i];
-                const [num2, ans2] = sortedAnswers[i + 1] || ['-', '-'];
+            let html = '<table class="review-table"><tr><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th><th>No</th><th>Jwb</th></tr>';
 
-                html += `<tr>
-                    <td>${num1}</td>
-                    <td>${ans1 === '+' ? '✓ Ya' : '✗ Tidak'}</td>
-                    <td>${num2 === '-' ? '' : num2}</td>
-                    <td>${num2 === '-' ? '' : (ans2 === '+' ? '✓ Ya' : '✗ Tidak')}</td>
-                </tr>`;
+            const itemsPerRow = 8;
+            const numRows = Math.ceil(sortedAnswers.length / itemsPerRow);
+
+            for (let row = 0; row < numRows; row++) {
+                let rowHtml = '<tr>';
+                for (let col = 0; col < itemsPerRow; col++) {
+                    const index = col * numRows + row;
+                    if (index < sortedAnswers.length) {
+                        const [num, ans] = sortedAnswers[index];
+                        const displayAns = ans === '+' ? '✓' : (ans === '-' ? '✗' : '');
+                        rowHtml += `<td>${num}</td><td>${displayAns}</td>`;
+                    } else {
+                        rowHtml += '<td></td><td></td>';
+                    }
+                }
+                rowHtml += '</tr>';
+                html += rowHtml;
             }
             html += '</table>';
 
@@ -951,114 +1169,145 @@
                 </div>
                 <div style="background: var(--bg-light); padding: 20px; border-radius: 6px;">
                     <h3>Hasil Penilaian</h3>
-                    <p style="margin: 15px 0;"><strong>Catatan:</strong> Hasil ini adalah preview. Untuk hasil lengkap dengan interpretasi klinis, silakan hubungi psikolog profesional.</p>
+                    <p style="margin: 15px 0;"><strong>Catatan:</strong> Hasil ini adalah preview data mentah. Untuk interpretasi klinis (Grafik Profil), silakan konsultasikan dengan Psikolog Klinis.</p>
                     <p><strong>Total Pernyataan Terjawab:</strong> ${answered}/567 (${Math.round((answered/567)*100)}%)</p>
                 </div>
             `;
         }
 
-        function exportToExcel() {
-            const nama = document.getElementById('nama').value || 'Responden';
-            const ttl = document.getElementById('ttl').value;
-            const jk = document.getElementById('jk').value;
-            const pendidikan = document.getElementById('pendidikan').value;
-            const pekerjaan = document.getElementById('pekerjaan').value;
-            const umur = document.getElementById('umur').value;
-            const alamat = document.getElementById('alamat').value;
-
-            let csvContent = "HASIL PENILAIAN MMPI-2\n\n";
-            csvContent += "INFORMASI RESPONDEN\n";
-            csvContent += `Nama,${nama}\nTanggal Lahir,${ttl}\nUmur,${umur}\nJenis Kelamin,${jk}\nPendidikan,${pendidikan}\nPekerjaan,${pekerjaan}\nAlamat,${alamat}\nTanggal Pemeriksaan,${new Date().toLocaleDateString('id-ID')}\n\n`;
-
-            csvContent += "LEMBAR JAWABAN MMPI-2\n";
-            csvContent += "No,Ya,Tidak,No,Ya,Tidak\n";
-
-            for (let i = 1; i <= 567; i += 2) {
-                const ans1Ya = answers[i] === '+' ? '✓' : '';
-                const ans1Tidak = answers[i] === '-' ? '✓' : '';
-                const ans2Ya = answers[i + 1] === '+' ? '✓' : '';
-                const ans2Tidak = answers[i + 1] === '-' ? '✓' : '';
-
-                csvContent += `${i},${ans1Ya},${ans1Tidak},${i + 1},${ans2Ya},${ans2Tidak}\n`;
-            }
-
-            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `MMPI2_${nama.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
-        }
-
         function exportToPDF() {
             const nama = document.getElementById('nama').value || 'Responden';
-            const ttl = document.getElementById('ttl').value;
-            const jk = document.getElementById('jk').value;
-            const pendidikan = document.getElementById('pendidikan').value;
-            const pekerjaan = document.getElementById('pekerjaan').value;
-            const umur = document.getElementById('umur').value;
-            const alamat = document.getElementById('alamat').value;
+            const ttl = document.getElementById('ttl').value || '-';
+            const jk = document.getElementById('jk').value || '-';
+            const pendidikan = document.getElementById('pendidikan').value || '-';
+            const pekerjaan = document.getElementById('pekerjaan').value || '-';
+            const umur = document.getElementById('umur').value || '-';
+            const alamat = document.getElementById('alamat').value || '-';
+            const tanggal = new Date().toLocaleDateString('id-ID', {
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric'
+            });
 
-            const sortedAnswers = Object.entries(answers).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
-
-            let tableRows = '';
-            for (let i = 0; i < sortedAnswers.length; i += 2) {
-                const [num1, ans1] = sortedAnswers[i];
-                const [num2, ans2] = sortedAnswers[i + 1] || ['-', '-'];
-
-                const ans1Ya = ans1 === '+' ? '✓' : '';
-                const ans1Tidak = ans1 === '-' ? '✓' : '';
-                const ans2Ya = ans2 === '+' ? '✓' : '';
-                const ans2Tidak = ans2 === '-' ? '✓' : '';
-
-                tableRows += `<tr>
-                    <td>${num1}</td><td>${ans1Ya}</td><td>${ans1Tidak}</td>
-                    <td>${num2 === '-' ? '' : num2}</td>
-                    <td>${num2 === '-' ? '' : ans2Ya}</td>
-                    <td>${num2 === '-' ? '' : ans2Tidak}</td>
-                </tr>`;
+            const totalQuestions = 567;
+            const itemsPerRow = 8; 
+            const numRows = Math.ceil(totalQuestions / itemsPerRow); 
+            
+            let tableHtml = '<table class="print-table"><thead><tr>';
+            for(let h=0; h<itemsPerRow; h++) {
+                tableHtml += '<th>No</th><th>Jwb</th>';
             }
+            tableHtml += '</tr></thead><tbody>';
+
+            for (let row = 0; row < numRows; row++) {
+                tableHtml += '<tr>';
+                for (let col = 0; col < itemsPerRow; col++) {
+                    const index = col * numRows + row; 
+                    const qNum = index + 1;
+
+                    if (qNum <= totalQuestions) {
+                        const ans = answers[qNum];
+                        let symbol = '';
+                        let colorClass = '';
+
+                        if (ans === '+') {
+                            symbol = '✓'; 
+                            colorClass = 'ans-plus';
+                        } else if (ans === '-') {
+                            symbol = '✗'; 
+                            colorClass = 'ans-minus';
+                        } else {
+                            symbol = '•'; 
+                            colorClass = 'ans-empty';
+                        }
+
+                        tableHtml += `<td class="num-col">${qNum}</td><td class="ans-col ${colorClass}">${symbol}</td>`;
+                    } else {
+                        tableHtml += '<td class="empty-cell"></td><td class="empty-cell"></td>';
+                    }
+                }
+                tableHtml += '</tr>';
+            }
+            tableHtml += '</tbody></table>';
 
             const printContent = `
+                <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>MMPI-2 Assessment</title>
+                    <title>Hasil MMPI-2 - ${nama}</title>
                     <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; font-size: 10px; }
-                        h1 { text-align: center; font-size: 12px; }
-                        h2 { font-size: 10px; margin-top: 10px; border-bottom: 1px solid #000; }
-                        .info-row { display: flex; margin: 3px 0; }
-                        .info-label { width: 120px; font-weight: bold; }
-                        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-                        th, td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 9px; }
-                        th { background-color: #f0f0f0; }
-                        .page-break { page-break-after: always; }
+                        @page {
+                            size: A4 landscape; 
+                            margin: 10mm;
+                        }
+                        body { 
+                            font-family: 'Segoe UI', Arial, sans-serif; 
+                            font-size: 10px; 
+                            color: #333;
+                            -webkit-print-color-adjust: exact; 
+                            print-color-adjust: exact;
+                        }
+                        .header-container {
+                            border-bottom: 2px solid #2180d4;
+                            padding-bottom: 10px;
+                            margin-bottom: 15px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-end;
+                        }
+                        h1 { margin: 0; font-size: 18px; color: #2180d4; text-transform: uppercase; }
+                        .biodata-grid {
+                            display: grid;
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 10px;
+                            margin-bottom: 15px;
+                            background: #f5f7fa;
+                            padding: 10px;
+                            border-radius: 4px;
+                            border: 1px solid #e1e8ed;
+                        }
+                        .bio-item strong { display: block; font-size: 9px; color: #7f8c8d; }
+                        .bio-item span { display: block; font-size: 11px; font-weight: 600; }
+                        .print-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+                        .print-table th { background-color: #f0f0f0; border: 1px solid #ccc; padding: 2px; font-weight: 700; text-align: center; color: #444; }
+                        .print-table td { border: 1px solid #ccc; padding: 0; text-align: center; height: 16px; vertical-align: middle; }
+                        .num-col { background-color: #fafafa; color: #666; width: 25px; font-weight: 600; font-size: 8px; }
+                        .ans-col { width: 25px; font-weight: bold; font-size: 11px; }
+                        .ans-plus { color: #27ae60; background-color: rgba(39, 174, 96, 0.05); }
+                        .ans-minus { color: #e74c3c; background-color: rgba(231, 76, 60, 0.05); }
+                        .ans-empty { color: #bdc3c7; }
+                        .empty-cell { background: #fff; border: none !important; }
+                        .footer { margin-top: 20px; font-size: 9px; text-align: right; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 5px; }
                     </style>
                 </head>
                 <body>
-                    <h1>HASIL PENILAIAN MMPI-2</h1>
-                    <h2>INFORMASI RESPONDEN</h2>
-                    <div class="info-row"><div class="info-label">Nama:</div><div>${nama}</div></div>
-                    <div class="info-row"><div class="info-label">TTL:</div><div>${ttl}</div></div>
-                    <div class="info-row"><div class="info-label">Umur:</div><div>${umur} tahun</div></div>
-                    <div class="info-row"><div class="info-label">Jenis Kelamin:</div><div>${jk}</div></div>
-                    <div class="info-row"><div class="info-label">Pendidikan:</div><div>${pendidikan}</div></div>
-                    <div class="info-row"><div class="info-label">Pekerjaan:</div><div>${pekerjaan}</div></div>
-                    <div class="info-row"><div class="info-label">Tanggal:</div><div>${new Date().toLocaleDateString('id-ID')}</div></div>
-
-                    <h2>LEMBAR JAWABAN MMPI-2</h2>
-                    <table>
-                        <tr><th>No</th><th>Ya</th><th>Tidak</th><th>No</th><th>Ya</th><th>Tidak</th></tr>
-                        ${tableRows}
-                    </table>
+                    <div class="header-container">
+                        <div>
+                            <h1>Lembar Jawaban MMPI-2</h1>
+                            <div style="font-size: 10px; color: #666;">Minnesota Multiphasic Personality Inventory - 2</div>
+                        </div>
+                        <div style="font-size: 10px;">Dicetak pada: ${tanggal}</div>
+                    </div>
+                    <div class="biodata-grid">
+                        <div class="bio-item"><strong>Nama Lengkap</strong><span>${nama}</span></div>
+                        <div class="bio-item"><strong>Jenis Kelamin</strong><span>${jk}</span></div>
+                        <div class="bio-item"><strong>Umur</strong><span>${umur} Tahun</span></div>
+                        <div class="bio-item"><strong>Tanggal Lahir</strong><span>${ttl}</span></div>
+                        <div class="bio-item"><strong>Pendidikan</strong><span>${pendidikan}</span></div>
+                        <div class="bio-item"><strong>Pekerjaan</strong><span>${pekerjaan}</span></div>
+                        <div class="bio-item" style="grid-column: span 2;"><strong>Alamat</strong><span>${alamat}</span></div>
+                    </div>
+                    ${tableHtml}
+                    <div class="footer">MMPI-2 Assessment Tool - Generated Report | Halaman 1</div>
                 </body>
                 </html>
             `;
 
-            const printWindow = window.open('', '', 'width=800,height=600');
+            const printWindow = window.open('', '', 'width=1000,height=800');
             printWindow.document.write(printContent);
             printWindow.document.close();
-            setTimeout(() => { printWindow.print(); }, 250);
+            setTimeout(() => { printWindow.focus(); printWindow.print(); }, 500);
         }
 
         function resetForm() {
@@ -1068,6 +1317,7 @@
                 localStorage.removeItem('mmpi_biodata');
                 document.getElementById('biodataForm').reset();
                 updateProgress();
+                currentPage = 1; // Reset halaman ke 1
                 switchTab('biodata');
                 alert('✓ Semua data telah dihapus');
             }
