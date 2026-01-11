@@ -510,11 +510,9 @@
                     </div>
                     <div class="form-group">
                         <label for="jk">Jenis Kelamin *</label>
-                        <select id="jk" required>
-                            <option value="">-- Pilih --</option>
-                            <option value="Pria">Pria</option>
-                            <option value="Wanita">Wanita</option>
-                        </select>
+<select id="jk" required>
+    <option value="">-- Pilih --</option>
+    <option value="Laki-laki">Pria</option> <option value="Perempuan">Wanita</option> </select>
                     </div>
                 </div>
 
@@ -598,10 +596,14 @@
         <div id="scoring" class="tab-content">
             <h2>Hasil Penilaian MMPI-2</h2>
             
-            <div class="button-group" style="margin-bottom: 20px;">
-                <button class="btn btn-primary" onclick="calculateScores()">🧮 Hitung Skor</button>
-                <button class="btn btn-secondary" onclick="exportToPDF()">📄 Print/PDF</button>
-            </div>
+<div class="button-group" style="margin-bottom: 20px;">
+    <button class="btn btn-primary" onclick="calculateScores()">🧮 Hitung Skor</button>
+    <button class="btn btn-secondary" onclick="exportToPDF()">📄 Print/PDF</button>
+    
+    <button class="btn" style="background: #8e44ad; color: white;" onclick="downloadJSON()">
+        📤 Download Data (.JSON)
+    </button>
+</div>
 
             <div id="scoringResult"></div>
 
@@ -1332,6 +1334,51 @@
 
         // Initialize
         updateProgress();
+
+        // --- FITUR BARU: DOWNLOAD DATA UNTUK PSIKOLOG ---
+    function downloadJSON() {
+        // 1. Validasi Nama (Wajib ada agar file tidak tertukar)
+        const nama = document.getElementById('nama').value;
+        if (!nama) {
+            alert('⚠️ Mohon isi Nama Lengkap di tab Biodata terlebih dahulu.');
+            switchTab('biodata');
+            return;
+        }
+
+        // 2. Ambil semua data (Biodata + Jawaban)
+        const dataExport = {
+            meta: {
+                app: "MMPI-2 Assessment Tool",
+                version: "4.0",
+                timestamp: new Date().toISOString()
+            },
+            biodata: {
+                nama: nama,
+                ttl: document.getElementById('ttl').value,
+                jk: document.getElementById('jk').value, 
+                pendidikan: document.getElementById('pendidikan').value,
+                pekerjaan: document.getElementById('pekerjaan').value,
+                usia: document.getElementById('umur').value,
+                alamat: document.getElementById('alamat').value
+            },
+            answers: answers // Mengambil variabel global 'answers' yang berisi 567 jawaban
+        };
+
+        // 3. Proses pembuatan file
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataExport, null, 2));
+        const downloadAnchor = document.createElement('a');
+        
+        // Buat nama file aman (spasi jadi underscore)
+        const safeName = nama.replace(/[^a-zA-Z0-9]/g, '_'); 
+        
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `MMPI2_${safeName}_Result.json`);
+        
+        // 4. Trigger download
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
     </script>
 </body>
 </html>
