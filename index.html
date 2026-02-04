@@ -59,15 +59,17 @@
         .q-num { font-size: 12px; font-weight: 700; background: #e3f2fd; color: var(--primary); padding: 2px 8px; border-radius: 4px; }
         .q-text { font-size: 16px; font-weight: 500; color: #2d3436; line-height: 1.4; }
         
-        .answer-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .answer-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
         .ans-btn { padding: 12px; border: 2px solid var(--border); border-radius: 8px; background: #fff; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .ans-btn:active { transform: scale(0.98); }
         
         .ans-btn.plus { color: var(--success); }
         .ans-btn.minus { color: var(--error); }
+        .ans-btn.clear { color: var(--text-light); }
         
         .ans-btn.plus.selected { background: var(--success); border-color: var(--success); color: white; }
         .ans-btn.minus.selected { background: var(--error); border-color: var(--error); color: white; }
+        .ans-btn.clear.selected { background: #bdc3c7; border-color: #bdc3c7; color: white; }
 
         /* PAGINATION */
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
@@ -85,6 +87,10 @@
         .info-box { background: #e3f2fd; border-left: 4px solid var(--primary); padding: 15px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; color: #444; }
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 999; }
         .toast.show { opacity: 1; bottom: 30px; }
+
+        .quick-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .quick-actions input { max-width: 180px; }
+        .btn-ghost { background: #f8f9fa; border: 1px dashed var(--border); color: var(--text-dark); }
 
         /* REVIEW TABLE */
         .review-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 5px; max-height: 400px; overflow-y: auto; }
@@ -174,7 +180,7 @@
             <div class="summary">
                 <div class="summary-card">
                     <h3>Total</h3>
-                    <div class="value">567</div>
+                    <div class="value" id="totalQuestions">0</div>
                 </div>
                 <div class="summary-card">
                     <h3>Terjawab</h3>
@@ -182,12 +188,19 @@
                 </div>
                 <div class="summary-card">
                     <h3>Sisa</h3>
-                    <div class="value" id="countRemaining">567</div>
+                    <div class="value" id="countRemaining">0</div>
                 </div>
             </div>
 
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="quick-actions">
+                <input type="number" id="jumpNumber" min="1" placeholder="Nomor soal..." />
+                <button class="btn btn-secondary" onclick="jumpToQuestion()">Lompat</button>
+                <button class="btn btn-ghost" onclick="goToFirstMissing()">Soal Kosong Pertama</button>
+                <span style="font-size:12px; color:#777;">Tips: gunakan untuk cepat berpindah.</span>
             </div>
 
             <div id="qContainer">
@@ -817,11 +830,15 @@
         let answers = {};
         let currentPage = 1;
         const perPage = 50;
-        const totalPages = Math.ceil(567 / perPage);
+        const TOTAL_QUESTIONS = QUESTIONS_DB.length;
+        const totalPages = Math.ceil(TOTAL_QUESTIONS / perPage);
 
         // --- INIT ---
         window.onload = function() {
             loadFromStorage();
+            document.getElementById('totalQuestions').innerText = TOTAL_QUESTIONS;
+            document.getElementById('jumpNumber').setAttribute('max', TOTAL_QUESTIONS);
+            document.getElementById('jumpNumber').setAttribute('placeholder', `Nomor soal (1-${TOTAL_QUESTIONS})`);
             renderPage();
             updateStats();
         };
@@ -839,6 +856,12 @@
             btns.forEach(btn => {
                 if(btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
             });
+
+            if(tabId === 'questions' && !isBiodataComplete()) {
+                alert("Mohon lengkapi biodata terlebih dahulu.");
+                switchTab('biodata');
+                return;
+            }
 
             if(tabId === 'review') renderReviewGrid();
         }
@@ -861,6 +884,12 @@
             if(!ttl) return;
             const birthDate = new Date(ttl);
             const today = new Date();
+            if (birthDate > today) {
+                alert("Tanggal lahir tidak boleh di masa depan.");
+                document.getElementById('ttl').value = '';
+                document.getElementById('umur').value = '';
+                return;
+            }
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
@@ -874,7 +903,7 @@
             container.innerHTML = '';
             
             const start = (currentPage - 1) * perPage;
-            const end = Math.min(start + perPage, 567);
+            const end = Math.min(start + perPage, TOTAL_QUESTIONS);
 
             for (let i = start; i < end; i++) {
                 const qNum = i + 1;
@@ -895,6 +924,9 @@
                         </div>
                         <div class="ans-btn minus ${val==='-' ? 'selected' : ''}" onclick="setAnswer(${qNum}, '-')">
                             <span>TIDAK</span> <span>❌</span>
+                        </div>
+                        <div class="ans-btn clear ${val===undefined ? 'selected' : ''}" onclick="clearAnswer(${qNum})">
+                            <span>KOSONG</span> <span>➖</span>
                         </div>
                     </div>
                 `;
@@ -927,6 +959,18 @@
             saveToStorage();
         }
 
+        function clearAnswer(num) {
+            delete answers[num];
+            const card = document.getElementById(`q-${num}`);
+            if(card) {
+                const btns = card.querySelectorAll('.ans-btn');
+                btns.forEach(b => b.classList.remove('selected'));
+                if(btns[2]) btns[2].classList.add('selected');
+            }
+            updateStats();
+            saveToStorage();
+        }
+
         function prevPage() { if(currentPage > 1) { currentPage--; renderPage(); } }
         function nextPage() { if(currentPage < totalPages) { currentPage++; renderPage(); } }
         
@@ -949,10 +993,10 @@
 
         function updateStats() {
             const count = Object.keys(answers).length;
-            const pct = (count / 567) * 100;
+            const pct = (count / TOTAL_QUESTIONS) * 100;
             
             document.getElementById('countAnswered').innerText = count;
-            document.getElementById('countRemaining').innerText = 567 - count;
+            document.getElementById('countRemaining').innerText = TOTAL_QUESTIONS - count;
             document.getElementById('progressBar').style.width = `${pct}%`;
         }
 
@@ -960,7 +1004,7 @@
             const grid = document.getElementById('reviewGrid');
             grid.innerHTML = '';
             
-            for(let i=1; i<=567; i++) {
+            for(let i=1; i<=TOTAL_QUESTIONS; i++) {
                 const div = document.createElement('div');
                 const filled = answers[i] !== undefined;
                 div.className = `rev-item ${filled ? 'filled' : 'empty'}`;
@@ -971,14 +1015,41 @@
         }
 
         function checkMissing() {
-            for(let i=1; i<=567; i++) {
-                if(!answers[i]) {
+            for(let i=1; i<=TOTAL_QUESTIONS; i++) {
+                if(answers[i] === undefined) {
                     alert(`Nomor ${i} belum dijawab. Mengarahkan ke soal...`);
                     goToQuestion(i);
                     return;
                 }
             }
             alert("Semua soal sudah terjawab!");
+        }
+
+        function goToFirstMissing() {
+            for(let i=1; i<=TOTAL_QUESTIONS; i++) {
+                if(answers[i] === undefined) {
+                    goToQuestion(i);
+                    return;
+                }
+            }
+            alert("Semua soal sudah terjawab!");
+        }
+
+        function jumpToQuestion() {
+            const raw = document.getElementById('jumpNumber').value;
+            const num = parseInt(raw, 10);
+            if(Number.isNaN(num) || num < 1 || num > TOTAL_QUESTIONS) {
+                alert(`Masukkan nomor soal 1 - ${TOTAL_QUESTIONS}.`);
+                return;
+            }
+            goToQuestion(num);
+        }
+
+        function isBiodataComplete() {
+            const nama = document.getElementById('nama').value;
+            const jk = document.getElementById('jk').value;
+            const ttl = document.getElementById('ttl').value;
+            return Boolean(nama && jk && ttl);
         }
 
         // --- STORAGE & EXPORT ---
@@ -1003,17 +1074,24 @@
         function loadFromStorage() {
             const raw = localStorage.getItem('mmpi_data_v5');
             if(raw) {
-                const data = JSON.parse(raw);
-                answers = data.answers || {};
-                
-                if(data.biodata) {
-                    document.getElementById('nama').value = data.biodata.nama || '';
-                    document.getElementById('jk').value = data.biodata.jk || 'Laki-laki';
-                    document.getElementById('ttl').value = data.biodata.ttl || '';
-                    document.getElementById('pendidikan').value = data.biodata.pendidikan || 'SMA';
-                    document.getElementById('pekerjaan').value = data.biodata.pekerjaan || '';
-                    document.getElementById('alamat').value = data.biodata.alamat || '';
-                    document.getElementById('umur').value = data.biodata.umur || '';
+                try {
+                    const data = JSON.parse(raw);
+                    answers = data.answers || {};
+                    
+                    if(data.biodata) {
+                        document.getElementById('nama').value = data.biodata.nama || '';
+                        document.getElementById('jk').value = data.biodata.jk || 'Laki-laki';
+                        document.getElementById('ttl').value = data.biodata.ttl || '';
+                        document.getElementById('pendidikan').value = data.biodata.pendidikan || 'SMA';
+                        document.getElementById('pekerjaan').value = data.biodata.pekerjaan || '';
+                        document.getElementById('alamat').value = data.biodata.alamat || '';
+                        document.getElementById('umur').value = data.biodata.umur || '';
+                        if (document.getElementById('ttl').value && !document.getElementById('umur').value) {
+                            hitungUmur();
+                        }
+                    }
+                } catch (error) {
+                    localStorage.removeItem('mmpi_data_v5');
                 }
             }
         }
@@ -1042,11 +1120,20 @@
 
             // 1. Convert Answers (+ -> true, - -> false)
             const cleanAnswers = {};
-            for (let i = 1; i <= 567; i++) {
+            for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
                 const val = answers[i];
                 // Hanya masukkan jika ada jawaban, biarkan undefined jika kosong (Cannot Say)
                 if (val === '+') cleanAnswers[i] = true;
                 else if (val === '-') cleanAnswers[i] = false;
+            }
+
+            const missingCount = TOTAL_QUESTIONS - Object.keys(answers).length;
+            if (missingCount > 0) {
+                const proceed = confirm(`Masih ada ${missingCount} soal kosong. Lanjut download?`);
+                if (!proceed) {
+                    switchTab('questions');
+                    return;
+                }
             }
 
             // 2. Build Object sesuai format Scoring System
